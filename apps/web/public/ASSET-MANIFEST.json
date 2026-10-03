@@ -1,0 +1,272 @@
+[
+  {
+    "path": "apps/web/public/apple-touch-icon.png",
+    "bytes": 2642,
+    "sha256": "0a8f535367700b573f596acbd512e082c3497da3f71f0a2a67967a67c856bbae",
+    "dimensions": [
+      180,
+      180
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/assets/brand/consent-shield.svg",
+    "bytes": 392,
+    "sha256": "29c6880a130cbc7ce863d2615e5c9544bc9ae5f8d3e96b737b0d98043d40e514"
+  },
+  {
+    "path": "apps/web/public/assets/brand/demo-payment-mark.svg",
+    "bytes": 425,
+    "sha256": "35b8f4b5c57d0a7677074031c9718fbbe9605ddd4ca7ef9d435dc668f7fdd8e1"
+  },
+  {
+    "path": "apps/web/public/assets/brand/proof-band-field.svg",
+    "bytes": 854,
+    "sha256": "7de57e1e7f9adab5a2bb1159b0ce2fca0807693bdc257467d2315f373e20f0ec"
+  },
+  {
+    "path": "apps/web/public/assets/brand/recover-mark.svg",
+    "bytes": 369,
+    "sha256": "f045610a8be8f84b389ff702b7f56c50fb57a2f4d3465120a6efbe9ee65349a8"
+  },
+  {
+    "path": "apps/web/public/assets/brand/recover-wordmark-dark.svg",
+    "bytes": 528,
+    "sha256": "883dae5f97eaf96cf67c26e8660294f1d9e5035ea0f44a01dd03dcda9bf9b4cf"
+  },
+  {
+    "path": "apps/web/public/assets/brand/recover-wordmark-light.svg",
+    "bytes": 528,
+    "sha256": "d79b89b21feff2d33cc5962320b70927e5e7665a6d3e6bfe0887959a50954d2e"
+  },
+  {
+    "path": "apps/web/public/assets/brand/signal-divider.svg",
+    "bytes": 527,
+    "sha256": "e22c045dd6f3a680ed1c49b77352a21478174031b9f6ff992a9b9f1f8b589a12"
+  },
+  {
+    "path": "apps/web/public/assets/marketing/final-cta-horizon.avif",
+    "bytes": 37168,
+    "sha256": "a6ffea37c1522285368f9965282de16c30329dc47ca032c3d7b978ae31e1a043",
+    "dimensions": [
+      2000,
+      650
+    ],
+    "mode": "RGB"
+  },
+  {
+    "path": "apps/web/public/assets/marketing/hero-revenue-signal-1200.webp",
+    "bytes": 133416,
+    "sha256": "687a73b83401545457c71610989fdf4287a375ab0a05ef651e146318eb90ac8a",
+    "dimensions": [
+      1200,
+      900
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/assets/marketing/hero-revenue-signal.webp",
+    "bytes": 247996,
+    "sha256": "cca223787465599b23ff7f1f906d4c4e017f6b24d78dc24ff609d899cbfeff51",
+    "dimensions": [
+      1800,
+      1350
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/assets/marketing/pricing-orbit-background.avif",
+    "bytes": 183886,
+    "sha256": "3844261dbe9fab76185d80beda8a868200b5da6f3b7fe1022307c7817bc80c5d",
+    "dimensions": [
+      2400,
+      1300
+    ],
+    "mode": "RGB"
+  },
+  {
+    "path": "apps/web/public/assets/marketing/roi-signal-texture.avif",
+    "bytes": 227925,
+    "sha256": "fc6e49f954f4b67f9149e6f8ae4ba62a40bcf7a978c1765dbbe68934a5af8bd4",
+    "dimensions": [
+      1800,
+      1000
+    ],
+    "mode": "RGB"
+  },
+  {
+    "path": "apps/web/public/assets/marketing/step-confirm-recovery.webp",
+    "bytes": 102340,
+    "sha256": "15c5196173f5a907dabb99be9d53b0f01fdb1b6ab3079ddbc06704ebc5cd8fab",
+    "dimensions": [
+      900,
+      900
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/assets/marketing/step-find-signals.webp",
+    "bytes": 129670,
+    "sha256": "587ddfa0641dd7c0ccc250d3582cc9e39deabb3cf1709ee46cf9eb52226d7e5b",
+    "dimensions": [
+      900,
+      900
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/assets/marketing/step-prioritize-review.webp",
+    "bytes": 85032,
+    "sha256": "06c3059645a61bbbc66b0f32641249da3b90d0015dcf9bebd5df23b26c4504fe",
+    "dimensions": [
+      900,
+      900
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/assets/product/auth-signal-field.avif",
+    "bytes": 154334,
+    "sha256": "b693f07213d04c4d8711f2bf3415253db2ad0749e3ae9b1117fc397e03cc04b5",
+    "dimensions": [
+      1600,
+      1800
+    ],
+    "mode": "RGB"
+  },
+  {
+    "path": "apps/web/public/assets/product/dashboard-recovery-loop.webp",
+    "bytes": 166704,
+    "sha256": "0304126687fc5cb9af1c16c7d2894075743f25422ad70f9b30545f8d372b94d1",
+    "dimensions": [
+      1200,
+      900
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/assets/social/og-default.webp",
+    "bytes": 49344,
+    "sha256": "1e0ef7d0a9f1109764ab7393bc6bd8420dba77f3765d7141a75aa25dddf55d77",
+    "dimensions": [
+      1200,
+      630
+    ],
+    "mode": "RGB"
+  },
+  {
+    "path": "apps/web/public/assets/states/empty-billing.webp",
+    "bytes": 37770,
+    "sha256": "b4028fd6dc7153ee61b3c19301790b077628ff3034584c8130d1a33f2daf13c3",
+    "dimensions": [
+      800,
+      600
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/assets/states/empty-evidence.webp",
+    "bytes": 56452,
+    "sha256": "6c5f190fd7b01876ad5e16ae28d0a1576f8b5b894a8cfccf316eac574d77353a",
+    "dimensions": [
+      700,
+      500
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/assets/states/empty-integrations.webp",
+    "bytes": 89234,
+    "sha256": "d73883b49e95c6a40d96c4638918e462cfa450488a71fd3bcea4ee19ce060c5f",
+    "dimensions": [
+      800,
+      600
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/assets/states/empty-messages.webp",
+    "bytes": 40448,
+    "sha256": "0613c6b822bc5e8362d2636a979b96ec4ac2a12b5d746ecea6d11d5fdad785cf",
+    "dimensions": [
+      800,
+      600
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/assets/states/empty-opportunities.webp",
+    "bytes": 70312,
+    "sha256": "2e6a8ef2786da9214409e125d95fa14aa6429203482c4866693a8de14e9f87fa",
+    "dimensions": [
+      800,
+      600
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/assets/states/empty-workflows.webp",
+    "bytes": 47822,
+    "sha256": "4f735c9f4a30b02f9150349f1d02d05971a464fedef6c778525ca3cfaf810962",
+    "dimensions": [
+      800,
+      600
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/assets/states/not-found-route.webp",
+    "bytes": 80136,
+    "sha256": "0ec292fadf90838986795f4def9db31ddea6e44efe5109d77396138841bcc468",
+    "dimensions": [
+      900,
+      650
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/assets/states/service-connection-error.webp",
+    "bytes": 32680,
+    "sha256": "c652f8cccbf03567a4aa0ad77a37f3eda06871f8a511bb4489222ad337bf2fc2",
+    "dimensions": [
+      900,
+      650
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/favicon-32.png",
+    "bytes": 751,
+    "sha256": "5ded44f9dbd54f6878658f325a1f0f036eaaf2ec9f32a8497ae35c3203b37a17",
+    "dimensions": [
+      32,
+      32
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/favicon.svg",
+    "bytes": 369,
+    "sha256": "f045610a8be8f84b389ff702b7f56c50fb57a2f4d3465120a6efbe9ee65349a8"
+  },
+  {
+    "path": "apps/web/public/pwa-192.png",
+    "bytes": 2712,
+    "sha256": "c263c5a5c2605030eb4c56f9ba0501a349aae321d514e292d6e7ea0aec7bfd98",
+    "dimensions": [
+      192,
+      192
+    ],
+    "mode": "RGBA"
+  },
+  {
+    "path": "apps/web/public/pwa-512.png",
+    "bytes": 7762,
+    "sha256": "4f2d8d99b35b8fd824c05a01b933f79fe72b6bf6dd75c274be96678fc3d9aec0",
+    "dimensions": [
+      512,
+      512
+    ],
+    "mode": "RGBA"
+  }
+]

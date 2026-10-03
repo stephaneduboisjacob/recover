@@ -1,0 +1,14 @@
+{
+  "name": "RECOVER",
+  "short_name": "RECOVER",
+  "description": "Find and recover revenue your business already earned.",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F7F8FB",
+  "theme_color": "#F7F8FB",
+  "icons": [
+    { "src": "/pwa-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/pwa-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

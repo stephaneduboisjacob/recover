@@ -83,6 +83,12 @@ server {
         proxy_read_timeout 90s;
     }
 
+    location = /site.webmanifest {
+        default_type application/manifest+json;
+        expires 1d;
+        try_files $uri =404;
+    }
+
     location /assets/ {
         expires 30d;
         try_files $uri =404;
