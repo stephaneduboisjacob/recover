@@ -1,0 +1,1 @@
+{"name":"@recover/integrations","version":"1.0.0","type":"module","main":"dist/index.js","types":"dist/index.d.ts","scripts":{"build":"tsc -p tsconfig.json"},"dependencies":{"@recover/shared":"1.0.0","stripe":"^18.5.0","twilio":"^5.10.3","nodemailer":"^10.0.13"}}

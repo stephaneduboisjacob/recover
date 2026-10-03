@@ -1,0 +1,37 @@
+{
+  "name": "recover",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n api,web,worker -c blue,green,yellow \"npm:dev:api\" \"npm:dev:web\" \"npm:dev:worker\"",
+    "dev:api": "npm --workspace apps/api run dev",
+    "dev:web": "npm --workspace apps/web run dev",
+    "dev:worker": "npm --workspace apps/worker run dev",
+    "build": "npm run build --workspace @recover/shared && npm run build --workspace @recover/integrations && npm run build --workspace @recover/api && npm run build --workspace @recover/worker && npm run build --workspace @recover/web",
+    "start:api": "npm --workspace @recover/api start",
+    "start:worker": "npm --workspace @recover/worker start",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "test": "vitest run",
+    "test:smoke": "playwright test",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "24.19.1",
+    "@types/nodemailer": "^8.0.2",
+    "concurrently": "^9.2.1",
+    "prisma": "6.12.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@prisma/client": "6.12.0"
+  }
+}

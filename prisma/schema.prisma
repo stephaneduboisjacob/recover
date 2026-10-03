@@ -1,0 +1,450 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum IntegrationCategory {
+  CRM
+  EMAIL
+  SMS_VOICE
+  INVOICING
+  ECOMMERCE
+  PAYMENTS
+  LLM
+}
+
+enum IntegrationStatus {
+  CONNECTED
+  NEEDS_AUTH
+  ERROR
+  DISABLED
+}
+
+enum OpportunitySource {
+  QUOTE
+  MISSED_CALL
+  INVOICE
+  SUBSCRIPTION
+  CART
+  LEAD
+}
+
+enum OpportunityStatus {
+  NEW
+  DRAFTED
+  AWAITING_APPROVAL
+  ACTIVE
+  RECOVERED
+  DISMISSED
+}
+
+enum Channel {
+  EMAIL
+  SMS
+  VOICE
+}
+
+enum WorkflowStatus {
+  ACTIVE
+  PAUSED
+  DRAFT
+}
+
+enum WorkflowRunStatus {
+  QUEUED
+  RUNNING
+  WAITING_APPROVAL
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum MessageStatus {
+  DRAFT
+  PENDING_APPROVAL
+  QUEUED
+  SENT
+  DELIVERED
+  REPLIED
+  FAILED
+  SUPPRESSED
+}
+
+enum ConsentStatus {
+  UNKNOWN
+  OPTED_IN
+  OPTED_OUT
+}
+
+enum ConsentChannel {
+  EMAIL
+  SMS
+  VOICE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum BillingPlan {
+  STARTER
+  GROWTH
+  SCALE
+}
+
+model User {
+  id           String       @id @default(cuid())
+  name         String
+  email        String       @unique
+  passwordHash String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  memberships  Membership[]
+  sessions     Session[]
+  auditEvents  AuditLog[]
+}
+
+model Workspace {
+  id                   String                @id @default(cuid())
+  name                 String
+  slug                 String                @unique
+  demoMode             Boolean               @default(false)
+  basePlan             BillingPlan           @default(STARTER)
+  successFeeBps        Int                   @default(1500)
+  timezone             String                @default("UTC")
+  businessAddress      String?
+  quietHoursStart      String                @default("21:00")
+  quietHoursEnd        String                @default("08:00")
+  requireApproval      Boolean               @default(true)
+  collectionsApproval  Boolean               @default(true)
+  stripeCustomerId     String?               @unique
+  stripeSubscriptionId String?               @unique
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  memberships          Membership[]
+  integrations         Integration[]
+  entities             Entity[]
+  opportunities        RecoveryOpportunity[]
+  workflows            Workflow[]
+  workflowRuns         WorkflowRun[]
+  messages             Message[]
+  consents             Consent[]
+  auditLogs            AuditLog[]
+  invoices             Invoice[]
+  usageRecords         UsageRecord[]
+  payments             Payment[]
+  promptLogs           PromptLog[]
+  oauthStates          OAuthState[]
+}
+
+model Membership {
+  id          String        @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        WorkspaceRole @default(MEMBER)
+  createdAt   DateTime      @default(now())
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
+
+model Integration {
+  id          String              @id @default(cuid())
+  workspaceId String
+  category    IntegrationCategory
+  provider    String
+  displayName String
+  status      IntegrationStatus   @default(NEEDS_AUTH)
+  externalId  String?
+  credentials String?             @db.Text
+  settings    Json                @default("{}")
+  lastSyncAt  DateTime?
+  lastError   String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  workspace   Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, provider, externalId])
+  @@index([workspaceId, category, status])
+}
+
+model Entity {
+  id             String                @id @default(cuid())
+  workspaceId    String
+  provider       String
+  entityType     String
+  externalId     String
+  displayName    String?
+  email          String?
+  phone          String?
+  valueCents     Int?
+  currency       String                @default("USD")
+  status         String?
+  lastActivityAt DateTime?
+  nextStepAt     DateTime?
+  metadata       Json                  @default("{}")
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  workspace      Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  opportunities  RecoveryOpportunity[]
+
+  @@unique([workspaceId, provider, entityType, externalId])
+  @@index([workspaceId, entityType, lastActivityAt])
+}
+
+model RecoveryOpportunity {
+  id               String            @id @default(cuid())
+  workspaceId      String
+  entityId         String?
+  source           OpportunitySource
+  externalRef      String?
+  title            String
+  contactName      String?
+  contactEmail     String?
+  contactPhone     String?
+  estimatedCents   Int
+  recoveredCents   Int               @default(0)
+  currency         String            @default("USD")
+  confidence       Float             @default(0.7)
+  evidence         Json              @default("{}")
+  detectedAt       DateTime          @default(now())
+  status           OpportunityStatus @default(NEW)
+  recoveredAt      DateTime?
+  paymentConfirmed Boolean           @default(false)
+  idempotencyKey   String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  entity           Entity?           @relation(fields: [entityId], references: [id], onDelete: SetNull)
+  workflowRuns     WorkflowRun[]
+  messages         Message[]
+  payments         Payment[]
+  usageRecords     UsageRecord[]
+
+  @@unique([workspaceId, idempotencyKey])
+  @@index([workspaceId, status, detectedAt])
+  @@index([workspaceId, source, estimatedCents])
+}
+
+model Workflow {
+  id          String             @id @default(cuid())
+  workspaceId String
+  name        String
+  source      OpportunitySource?
+  status      WorkflowStatus     @default(DRAFT)
+  steps       Json               @default("[]")
+  tone        String             @default("warm")
+  autoSend    Boolean            @default(false)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  workspace   Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  runs        WorkflowRun[]
+
+  @@index([workspaceId, status])
+}
+
+model WorkflowRun {
+  id             String              @id @default(cuid())
+  workspaceId    String
+  workflowId     String
+  opportunityId  String
+  status         WorkflowRunStatus   @default(QUEUED)
+  currentStep    Int                 @default(0)
+  nextRunAt      DateTime?
+  idempotencyKey String              @unique
+  context        Json                @default("{}")
+  lastError      String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  workspace      Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workflow       Workflow            @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  opportunity    RecoveryOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  messages       Message[]
+
+  @@index([workspaceId, status, nextRunAt])
+}
+
+model Message {
+  id             String              @id @default(cuid())
+  workspaceId    String
+  opportunityId  String
+  workflowRunId  String?
+  channel        Channel
+  recipient      String
+  subject        String?
+  body           String              @db.Text
+  status         MessageStatus       @default(DRAFT)
+  provider       String?
+  providerId     String?
+  paymentUrl     String?
+  idempotencyKey String              @unique
+  payloadHash    String
+  sentAt         DateTime?
+  deliveredAt    DateTime?
+  replyClass     String?
+  createdAt      DateTime            @default(now())
+  workspace      Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  opportunity    RecoveryOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  workflowRun    WorkflowRun?        @relation(fields: [workflowRunId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, status, createdAt])
+  @@index([recipient, channel])
+}
+
+model Consent {
+  id           String         @id @default(cuid())
+  workspaceId  String
+  subject      String
+  channel      ConsentChannel
+  status       ConsentStatus  @default(UNKNOWN)
+  jurisdiction String?
+  source       String?
+  disclosure   String?
+  consentedAt  DateTime?
+  revokedAt    DateTime?
+  evidence     Json           @default("{}")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  workspace    Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, subject, channel])
+  @@index([workspaceId, status, channel])
+}
+
+model AuditLog {
+  id           String    @id @default(cuid())
+  workspaceId  String
+  actorId      String?
+  actorType    String    @default("SYSTEM")
+  action       String
+  targetType   String
+  targetId     String
+  jurisdiction String?
+  payloadHash  String
+  details      Json      @default("{}")
+  createdAt    DateTime  @default(now())
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actor        User?     @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt])
+  @@index([targetType, targetId])
+}
+
+model Invoice {
+  id          String    @id @default(cuid())
+  workspaceId String
+  provider    String
+  externalId  String
+  status      String
+  amountCents Int
+  currency    String    @default("USD")
+  dueAt       DateTime?
+  paidAt      DateTime?
+  payload     Json      @default("{}")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, provider, externalId])
+}
+
+model UsageRecord {
+  id                  String              @id @default(cuid())
+  workspaceId         String
+  opportunityId       String
+  recoveredCents      Int
+  feeCents            Int
+  successFeeBps       Int
+  stripeUsageRecordId String?
+  idempotencyKey      String              @unique
+  reportedAt          DateTime            @default(now())
+  workspace           Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  opportunity         RecoveryOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, reportedAt])
+}
+
+model Payment {
+  id             String              @id @default(cuid())
+  workspaceId    String
+  opportunityId  String
+  provider       String
+  externalId     String?
+  url            String?
+  amountCents    Int
+  currency       String              @default("USD")
+  status         PaymentStatus       @default(PENDING)
+  idempotencyKey String              @unique
+  confirmedAt    DateTime?
+  createdAt      DateTime            @default(now())
+  workspace      Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  opportunity    RecoveryOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, status, createdAt])
+}
+
+model PromptLog {
+  id           String    @id @default(cuid())
+  workspaceId  String
+  provider     String
+  model        String
+  purpose      String
+  promptHash   String
+  responseHash String
+  prompt       String    @db.Text
+  response     String    @db.Text
+  cached       Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, promptHash])
+}
+
+model OAuthState {
+  id          String    @id @default(cuid())
+  workspaceId String
+  provider    String
+  stateHash   String    @unique
+  expiresAt   DateTime
+  details     Json      @default("{}")
+  createdAt   DateTime  @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
+
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  provider    String
+  externalId  String
+  payloadHash String
+  processedAt DateTime @default(now())
+
+  @@unique([provider, externalId])
+}

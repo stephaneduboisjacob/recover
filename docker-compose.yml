@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    profiles: ["dev"]
+    environment:
+      POSTGRES_USER: recover_app
+      POSTGRES_PASSWORD: recover-local-only
+      POSTGRES_DB: recover_dev
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - recover-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recover_app -d recover_dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "noeviction"]
+    ports:
+      - "127.0.0.1:6381:6379"
+    volumes:
+      - recover-redis:/data
+    restart: unless-stopped
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    profiles: ["dev"]
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+volumes:
+  recover-redis:
+  recover-postgres:
