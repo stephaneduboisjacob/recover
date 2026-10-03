@@ -369,22 +369,24 @@ app.post('/api/messages/:id/approve-send', { preHandler: [auth, admin] }, async 
 const settlePayment = async (paymentId: string, actorId?: string, actorType = 'SYSTEM') => {
   const payment = await prisma.payment.findUnique({ where: { id: paymentId }, include: { opportunity: true, workspace: true } });
   if (!payment) throw new Error('Payment record not found');
-  if (payment.status === 'PAID') return payment;
-  const confirmedAt = new Date();
-  await prisma.$transaction([
-    prisma.payment.update({ where: { id: payment.id }, data: { status: 'PAID', confirmedAt } }),
-    prisma.recoveryOpportunity.update({ where: { id: payment.opportunityId }, data: { status: 'RECOVERED', paymentConfirmed: true, recoveredCents: payment.amountCents, recoveredAt: confirmedAt } })
-  ]);
+  const wasAlreadyPaid = payment.status === 'PAID';
+  const confirmedAt = payment.confirmedAt ?? new Date();
+  if (!wasAlreadyPaid) {
+    await prisma.$transaction([
+      prisma.payment.update({ where: { id: payment.id }, data: { status: 'PAID', confirmedAt } }),
+      prisma.recoveryOpportunity.update({ where: { id: payment.opportunityId }, data: { status: 'RECOVERED', paymentConfirmed: true, recoveredCents: payment.amountCents, recoveredAt: confirmedAt } })
+    ]);
+  }
   const feeCents = Math.round(payment.amountCents * payment.workspace.successFeeBps / 10000);
   const usage = await prisma.usageRecord.upsert({ where: { idempotencyKey: `recovery:${payment.opportunityId}` }, create: { workspaceId: payment.workspaceId, opportunityId: payment.opportunityId, recoveredCents: payment.amountCents, feeCents, successFeeBps: payment.workspace.successFeeBps, idempotencyKey: `recovery:${payment.opportunityId}` }, update: {} });
   let meterEventId: string | undefined;
-  if (process.env.STRIPE_SECRET_KEY && payment.workspace.stripeCustomerId) {
+  if (process.env.STRIPE_SECRET_KEY && payment.workspace.stripeCustomerId && !usage.stripeUsageRecordId) {
     const response = await fetch('https://api.stripe.com/v1/billing/meter_events', { method: 'POST', headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`, 'Content-Type': 'application/x-www-form-urlencoded', 'Idempotency-Key': usage.idempotencyKey }, body: new URLSearchParams({ event_name: process.env.STRIPE_METER_EVENT_NAME ?? 'recover_revenue_fee_cents', identifier: usage.idempotencyKey, 'payload[stripe_customer_id]': payment.workspace.stripeCustomerId, 'payload[value]': String(feeCents) }) });
     if (!response.ok) throw new Error(`Stripe usage metering failed (${response.status})`);
     const meter = await response.json() as { id?: string }; meterEventId = meter.id;
     if (meterEventId) await prisma.usageRecord.update({ where: { id: usage.id }, data: { stripeUsageRecordId: meterEventId } });
   }
-  await audit(payment.workspaceId, 'payment.confirmed', 'Payment', payment.id, { amountCents: payment.amountCents, currency: payment.currency, provider: payment.provider, meterEventId }, actorId, actorType);
+  if (!wasAlreadyPaid) await audit(payment.workspaceId, 'payment.confirmed', 'Payment', payment.id, { amountCents: payment.amountCents, currency: payment.currency, provider: payment.provider, meterEventId }, actorId, actorType);
   return prisma.payment.findUniqueOrThrow({ where: { id: payment.id } });
 };
 
