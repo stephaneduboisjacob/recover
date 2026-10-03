@@ -1,0 +1,31 @@
+[Unit]
+Description=RECOVER background worker
+After=network.target postgresql.service docker.service
+Wants=postgresql.service docker.service
+
+[Service]
+Type=simple
+User=sven
+Group=sven
+WorkingDirectory=/home/sven/recover
+EnvironmentFile=/home/sven/.config/recover/.env
+Environment=NODE_ENV=production
+ExecStartPre=/usr/bin/test -s /home/sven/recover/apps/worker/dist/index.js
+ExecStart=/usr/bin/node /home/sven/recover/apps/worker/dist/index.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
