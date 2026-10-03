@@ -42,6 +42,10 @@ Open `http://localhost:5173`. Mailhog is at `http://127.0.0.1:8025`. The seeded 
 
 The dashboard demo headline is data-driven from the seeded workspace; if the demo data is not loaded, the public API falls back to $84,219 found and $17,430 recovered.
 
+## Languages and visitor defaults
+
+The site and dashboard include English, French, Italian, Spanish, Simplified Chinese, and Russian. A visitor's saved language choice takes precedence. On a first visit, `/api/locale` uses the host's read-only GeoIP database: Quebec (`CA` / `QC`) defaults to French, and recognized French-, Italian-, Spanish-, Chinese-, and Russian-language regions use the corresponding language. Browser language is the fallback when a region is not mapped or GeoIP is unavailable. The optional `GEOIP_DATABASE_URL` setting should point to a restricted, read-only account; the production host stores it in `/home/sven/.config/recover/.env` with mode `0600`.
+
 ## Tests and builds
 
 ```bash

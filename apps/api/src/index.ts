@@ -8,6 +8,7 @@ import rawBody from 'fastify-raw-body';
 import { PrismaClient, OpportunityStatus, Channel, ConsentChannel, ConsentStatus, PaymentStatus } from '@prisma/client';
 import argon2 from 'argon2';
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { isIP } from 'node:net';
 import { Counter, collectDefaultMetrics, Registry } from 'prom-client';
 import { signupSchema, opportunityActionSchema, publicHeadline, nextWorkflowStep } from '@recover/shared';
 import { BTCPayPaymentAdapter, decryptCredentials, encryptCredentials, GmailAdapter, OAuthProvider, oauthAuthorizeUrl, OutlookAdapter, refreshOAuthCredentials, StripePaymentAdapter, TwilioSmsAdapter } from '@recover/integrations';
@@ -18,6 +19,9 @@ import twilio from 'twilio';
 import { classifyIntentRuleBased, runPrompt } from './llm.js';
 
 const prisma = new PrismaClient();
+const geoipPrisma = process.env.GEOIP_DATABASE_URL
+  ? new PrismaClient({ datasources: { db: { url: process.env.GEOIP_DATABASE_URL } } })
+  : null;
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' }, trustProxy: true, genReqId: () => randomBytes(8).toString('hex') });
 const redis = new Redis(process.env.REDIS_URL ?? 'redis://127.0.0.1:6381', { maxRetriesPerRequest: null });
 const recoverQueue = new Queue('recover-jobs', { connection: redis });
@@ -71,6 +75,54 @@ app.get('/healthz', async (_request, reply) => {
   catch (error) { app.log.error({ error }, 'health check failed'); return reply.code(503).send({ status: 'degraded' }); }
 });
 app.get('/metrics', async (_request, reply) => { reply.header('Content-Type', registry.contentType); return registry.metrics(); });
+
+type GeoIPResult = { country: string | null; region: string | null; registeredCountry: string | null };
+const locateAddress = async (address: string, family: 4 | 6): Promise<GeoIPResult | null> => {
+  if (!geoipPrisma) return null;
+  const cityRows = family === 4
+    ? await geoipPrisma.$queryRaw<GeoIPResult[]>`SELECT c.country_iso_code AS country, c.subdivision_1_iso_code AS region, rc.country_iso_code AS "registeredCountry" FROM public.city_blocks_ipv4 b LEFT JOIN public.city_locations c ON c.geoname_id = b.geoname_id AND c.locale_code = 'en' LEFT JOIN public.country_locations rc ON rc.geoname_id = b.registered_country_geoname_id AND rc.locale_code = 'en' WHERE ${address}::inet <<= b.network ORDER BY masklen(b.network) DESC LIMIT 1`
+    : await geoipPrisma.$queryRaw<GeoIPResult[]>`SELECT c.country_iso_code AS country, c.subdivision_1_iso_code AS region, rc.country_iso_code AS "registeredCountry" FROM public.city_blocks_ipv6 b LEFT JOIN public.city_locations c ON c.geoname_id = b.geoname_id AND c.locale_code = 'en' LEFT JOIN public.country_locations rc ON rc.geoname_id = b.registered_country_geoname_id AND rc.locale_code = 'en' WHERE ${address}::inet <<= b.network ORDER BY masklen(b.network) DESC LIMIT 1`;
+  if (cityRows[0]?.country || cityRows[0]?.registeredCountry) return cityRows[0];
+  const countryRows = family === 4
+    ? await geoipPrisma.$queryRaw<GeoIPResult[]>`SELECT c.country_iso_code AS country, NULL::text AS region, c.country_iso_code AS "registeredCountry" FROM public.country_blocks_ipv4 b LEFT JOIN public.country_locations c ON c.geoname_id = COALESCE(b.geoname_id, b.registered_country_geoname_id) AND c.locale_code = 'en' WHERE ${address}::inet <<= b.network ORDER BY masklen(b.network) DESC LIMIT 1`
+    : await geoipPrisma.$queryRaw<GeoIPResult[]>`SELECT c.country_iso_code AS country, NULL::text AS region, c.country_iso_code AS "registeredCountry" FROM public.country_blocks_ipv6 b LEFT JOIN public.country_locations c ON c.geoname_id = COALESCE(b.geoname_id, b.registered_country_geoname_id) AND c.locale_code = 'en' WHERE ${address}::inet <<= b.network ORDER BY masklen(b.network) DESC LIMIT 1`;
+  return countryRows[0] ?? null;
+};
+
+const localeForCountry = (country?: string | null, region?: string | null): string | null => {
+  if (country === 'CA' && region === 'QC') return 'fr';
+  if (['FR', 'BE', 'CH', 'LU', 'MC'].includes(country ?? '')) return 'fr';
+  if (['IT', 'SM', 'VA'].includes(country ?? '')) return 'it';
+  if (['ES', 'AR', 'BO', 'CL', 'CO', 'CR', 'CU', 'DO', 'EC', 'SV', 'GQ', 'GT', 'HN', 'MX', 'NI', 'PA', 'PY', 'PE', 'PR', 'UY', 'VE'].includes(country ?? '')) return 'es';
+  if (['CN', 'HK', 'MO', 'SG', 'TW'].includes(country ?? '')) return 'zh-CN';
+  if (['RU', 'BY', 'KG', 'KZ'].includes(country ?? '')) return 'ru';
+  if (['US', 'GB', 'CA', 'AU', 'NZ', 'IE', 'IN', 'ZA', 'PH'].includes(country ?? '')) return 'en';
+  return null;
+};
+
+const localeFromAcceptLanguage = (header?: string): string => {
+  for (const entry of (header ?? '').split(',')) {
+    const code = entry.split(';')[0]?.trim().toLowerCase();
+    if (code?.startsWith('zh')) return 'zh-CN';
+    const language = code?.split('-')[0];
+    if (language && ['en', 'fr', 'it', 'es', 'ru'].includes(language)) return language;
+  }
+  return 'en';
+};
+
+app.get('/api/locale', async (request, reply) => {
+  reply.header('Cache-Control', 'private, no-store');
+  const proxyAddress = request.headers['x-real-ip'];
+  const address = (typeof proxyAddress === 'string' ? proxyAddress.split(',')[0].trim() : request.ip);
+  const family = isIP(address);
+  let location: GeoIPResult | null = null;
+  if (family === 4 || family === 6) {
+    try { location = await locateAddress(address, family); }
+    catch (error) { app.log.warn({ err: error }, 'GeoIP locale lookup failed'); }
+  }
+  const country = location?.country ?? location?.registeredCountry ?? null;
+  return { language: localeForCountry(country, location?.region) ?? localeFromAcceptLanguage(request.headers['accept-language']), country, region: location?.region ?? null };
+});
 
 app.post('/api/auth/signup', async (request, reply) => {
   const input = signupSchema.safeParse(request.body);
