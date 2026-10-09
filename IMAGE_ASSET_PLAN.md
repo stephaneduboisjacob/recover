@@ -1,6 +1,6 @@
 # RECOVER — image asset and generation prompt plan
 
-This plan is based on a visual and route audit of `https://recover.btcpay.exchange/` and the current React app. The public site currently contains a navigation bar, hero, proof band, three-step explainer, integration band, ROI calculator, pricing section, final CTA and footer. The app contains the overview dashboard, opportunity list/detail, workflows, messages, integrations, settings, billing, team placeholder, sign-up/sign-in, demo checkout and legal pages.
+This plan is based on a visual and route audit of `https://recover.example.com/` and the current React app. The public site currently contains a navigation bar, hero, proof band, three-step explainer, integration band, ROI calculator, pricing section, final CTA and footer. The app contains the overview dashboard, opportunity list/detail, workflows, messages, integrations, settings, billing, team placeholder, sign-up/sign-in, demo checkout and legal pages.
 
 There is no About page, testimonial section, resource/blog section, or dedicated 404 page today. Those assets are grouped under **Future sections** so they are not mistaken for live content. The Team route is currently a placeholder and should get real team functionality before it gets decorative artwork.
 
@@ -390,3 +390,7 @@ These replace or sit beside the current 20 px step icons. Keep their light sourc
 5. **Expansion:** mission, genuine team photography, approved testimonials and resource covers when those page routes and real content exist.
 
 The goal is a recognizable visual signature used sparingly: one precise signal motif, one verified mint endpoint, honest product UI, real integrations and ample space. That restraint is what makes RECOVER feel futuristic and safe at the same time.
+
+---
+
+Contact: Stephane Jacob <jacobstephane@outlook.com>

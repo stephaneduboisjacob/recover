@@ -8,3 +8,9 @@ playwright-report/
 test-results/
 apps/web/dist/
 *.log
+*.zip
+.claude/
+.codex/
+
+# Local bootstrap credentials and runtime data
+var/

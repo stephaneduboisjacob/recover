@@ -6,8 +6,8 @@ Wants=nginx.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/bin/test -s /var/www/recover.btcpay.exchange/index.html
-ExecReload=/usr/bin/test -s /var/www/recover.btcpay.exchange/index.html
+ExecStart=/usr/bin/test -s /var/www/recover/index.html
+ExecReload=/usr/bin/test -s /var/www/recover/index.html
 
 [Install]
 WantedBy=multi-user.target

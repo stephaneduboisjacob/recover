@@ -5,13 +5,13 @@ Wants=postgresql.service docker.service
 
 [Service]
 Type=simple
-User=sven
-Group=sven
-WorkingDirectory=/home/sven/recover
-EnvironmentFile=/home/sven/.config/recover/.env
+User=recover
+Group=recover
+WorkingDirectory=/opt/recover
+EnvironmentFile=/etc/recover/recover.env
 Environment=NODE_ENV=production
-ExecStartPre=/usr/bin/test -s /home/sven/recover/apps/worker/dist/index.js
-ExecStart=/usr/bin/node /home/sven/recover/apps/worker/dist/index.js
+ExecStartPre=/usr/bin/test -s /opt/recover/apps/worker/dist/index.js
+ExecStart=/usr/bin/node /opt/recover/apps/worker/dist/index.js
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=30

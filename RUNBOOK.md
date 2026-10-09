@@ -1,84 +1,24 @@
-# RECOVER production runbook
+# Deployment runbook
 
-## Deploy
+This is a generic deployment template. Replace example hostnames and paths with values for your environment. The checked-in service and Nginx files are examples, not a record of a live host.
 
-Run from `/home/sven/recover` as `sven` unless a command uses `sudo`:
+## Prerequisites
 
-```bash
-npm ci
-npx prisma migrate deploy
-npm run db:seed
-npm run build
-docker compose up -d redis
-```
+- A supported Node.js 24 runtime and npm.
+- PostgreSQL, Redis, and a protected environment file outside the repository.
+- A domain and TLS termination configured by the operator.
 
-Copy the static site and systemd units, then enable the app services:
+## Deploy outline
 
-```bash
-sudo install -d -o www-data -g www-data -m 755 /var/www/recover.btcpay.exchange
-sudo rsync -a --delete apps/web/dist/ /var/www/recover.btcpay.exchange/
-sudo install -m 644 deploy/systemd/recover-api.service /etc/systemd/system/recover-api.service
-sudo install -m 644 deploy/systemd/recover-worker.service /etc/systemd/system/recover-worker.service
-sudo install -m 644 deploy/systemd/recover-web.service /etc/systemd/system/recover-web.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now recover-api recover-worker recover-web
-```
+1. Create a dedicated service account and install the checkout under a directory such as `/opt/recover`.
+2. Configure `DATABASE_URL`, `REDIS_URL`, `PUBLIC_URL`, `WEB_ORIGIN`, `SESSION_SECRET`, encryption keys, and provider credentials in a protected file such as `/etc/recover/recover.env`.
+3. Install dependencies from the lockfile, generate the Prisma client, apply migrations with the migration role, and build the workspaces.
+4. Start the API and worker on private interfaces. Serve the built web client through Nginx or an equivalent TLS-terminating proxy. Example HTTP and TLS configurations are in `deploy/nginx/`.
+5. Set the OAuth callback URLs in each provider console to the deployment's public origin. Use provider sandbox credentials for staging.
+6. Verify tenant isolation, consent checks, webhook signatures, audit records, backup restoration, and rollback procedures before enabling real customer workflows.
 
-The production environment file is `/home/sven/.config/recover/.env`, owned by `sven` with mode `0600`. Do not copy `.env.example` over it. PostgreSQL credentials are scoped to the `recover_app` role and `recover_prod` database. Redis is the RECOVER Docker container bound to `127.0.0.1:6381`.
+Never commit `.env`, provider tokens, payment credentials, customer exports, or production logs. Encrypt backups and restrict access to credentials and database dumps. Review local laws and provider requirements before using payment, messaging, or customer-data features.
 
-## Nginx and TLS
+## Contact
 
-The first install uses `deploy/nginx/recover.btcpay.exchange` as an HTTP-only ACME bootstrap vhost. Enable only the new site:
-
-```bash
-sudo install -m 644 deploy/nginx/recover.btcpay.exchange /etc/nginx/sites-available/recover.btcpay.exchange
-sudo ln -s /etc/nginx/sites-available/recover.btcpay.exchange /etc/nginx/sites-enabled/recover.btcpay.exchange
-sudo nginx -t
-sudo systemctl reload nginx
-```
-
-Issue the certificate using the administrator email supplied for this deployment:
-
-```bash
-sudo certbot --nginx -d recover.btcpay.exchange --non-interactive --agree-tos -m ADMIN_EMAIL --redirect
-```
-
-Then install `deploy/nginx/recover.btcpay.exchange.ssl` over the vhost, test and reload:
-
-```bash
-sudo install -m 644 deploy/nginx/recover.btcpay.exchange.ssl /etc/nginx/sites-available/recover.btcpay.exchange
-sudo nginx -t
-sudo systemctl reload nginx
-sudo systemctl status certbot.timer --no-pager
-sudo certbot renew --dry-run
-```
-
-The vhost serves the Vite build from `/var/www/recover.btcpay.exchange`, proxies `/api/`, `/webhooks/`, `/healthz`, and `/metrics` to loopback port 3201, and forwards WebSocket upgrade headers. It applies HSTS, CSP, frame, MIME, referrer and permissions headers. The `recover-web.service` is a readiness check; Nginx serves the static files directly.
-
-## Verify
-
-```bash
-curl -I http://recover.btcpay.exchange/
-curl -I https://recover.btcpay.exchange/
-curl -fsS https://recover.btcpay.exchange/healthz
-curl -fsS https://recover.btcpay.exchange/api/demo
-openssl s_client -connect recover.btcpay.exchange:443 -servername recover.btcpay.exchange </dev/null
-sudo nginx -t
-sudo ufw status numbered
-```
-
-Use headless Chrome or Playwright for the dashboard screenshot. Confirm the output in `test-results/dashboard.png`.
-
-## Health and recovery
-
-- `systemctl status recover-api recover-worker recover-web` checks service state.
-- `journalctl -u recover-api -u recover-worker -f` follows structured service logs.
-- `/healthz` verifies API and database connectivity; `/metrics` exposes Prometheus metrics.
-- Worker scans run every 15 minutes. Failed jobs retry up to five times with exponential delay. Requeue a workspace scan by adding `scan-workspace` to BullMQ with its workspace ID.
-- Stripe, Twilio, BTCPay and email hooks use stored event IDs or idempotency keys. Replayed events do not create duplicate recoveries.
-- Do not mark an opportunity recovered until payment is confirmed. Confirmed payments create an idempotent usage record; Stripe meter submission uses the same idempotency identifier.
-- For rollback, restore the previous static build and code revision, then `systemctl restart recover-api recover-worker`. Do not roll back a database schema by dropping tables; restore from the host's PostgreSQL backup procedure.
-
-## Operational boundaries
-
-RECOVER uses the host PostgreSQL service, does not bind its API outside loopback, and runs its Redis container on loopback. UFW allows inbound 80/443 and no longer allows inbound 5432. Keep those network rules and the existing Nginx sites intact. Never paste secrets into command output or commit `.env` files.
+Stephane Jacob <jacobstephane@outlook.com>
