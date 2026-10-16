@@ -1,4 +1,8 @@
-# RECOVER
+# RECOVER — Human-Approved Revenue Recovery
+
+<p align="center">
+  <img src="assets/brand/README-logo.svg" alt="RECOVER — human-approved recovery workflows" width="760">
+</p>
 
 A revenue-recovery workflow prototype that helps businesses find earned revenue that has not yet been collected. It connects business and payment records, ranks follow-up opportunities, and prepares approval-gated outreach for a human to review.
 
@@ -38,7 +42,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidance and [SECURITY.md
 
 ## License
 
-No license has been selected yet. Public visibility does not grant permission to reuse the code.
+This source-available project is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE). Noncommercial use is permitted under its terms; commercial use requires separate written permission.
 
 ## Contact
 

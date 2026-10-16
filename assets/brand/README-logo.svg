@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+  <title id="title">RECOVER — Make every next step intentional.</title>
+  <desc id="desc">A returning signal resolves into a human-approved check mark.</desc>
+  <defs>
+    <linearGradient id="amber" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFC96B"/><stop offset="1" stop-color="#F28C45"/></linearGradient>
+    <linearGradient id="mint" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#76E3CA"/><stop offset="1" stop-color="#39BCA6"/></linearGradient>
+  </defs>
+  <rect x="8" y="8" width="1184" height="304" rx="40" fill="#171C24"/>
+  <circle cx="160" cy="160" r="112" fill="#252B32"/>
+  <path d="M220 108a75 75 0 0 0-116-19" fill="none" stroke="url(#amber)" stroke-width="13" stroke-linecap="round"/>
+  <path d="m91 75 3 28 27-8" fill="none" stroke="#FFC96B" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M100 217a75 75 0 0 0 116 19" fill="none" stroke="url(#mint)" stroke-width="13" stroke-linecap="round"/>
+  <path d="m229 251-3-28-27 8" fill="none" stroke="#76E3CA" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="160" cy="160" r="48" fill="#202932" stroke="#64767A" stroke-width="3"/>
+  <path d="m137 159 16 16 32-37" fill="none" stroke="#F8F5EB" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="310" y="156" fill="#F8F5EB" font-family="Inter,Arial,sans-serif" font-size="88" font-weight="800" letter-spacing="2">RECOVER</text>
+  <text x="316" y="215" fill="#A8B2B1" font-family="Inter,Arial,sans-serif" font-size="27" font-weight="600" letter-spacing="3.5">MAKE EVERY NEXT STEP INTENTIONAL</text>
+  <path d="M316 251h190" stroke="#E9AC55" stroke-width="5" stroke-linecap="round"/>
+</svg>
